@@ -9,23 +9,24 @@ jest.mock('../../repositories/TransactionLog.repository');
 jest.mock('../../repositories/Wallet.repository');
 jest.mock('../../repositories/Ledger.repository');
 
+
 describe('TransferService', () => {
   let transferService: TransferService;
   let transactionRepoMock: jest.Mocked<TransactionRepository>;
   let walletRepoMock: jest.Mocked<WalletRepository>;
   let ledgerRepoMock: jest.Mocked<LedgerRepository>;
 
-  beforeEach(() => {
-    transactionRepoMock = new TransactionRepository() as jest.Mocked<TransactionRepository>;
-    walletRepoMock = new WalletRepository() as jest.Mocked<WalletRepository>;
-    ledgerRepoMock = new LedgerRepository() as jest.Mocked<LedgerRepository>;
-    transferService = new TransferService();
-    
-    // Override internal repo instances with mocks
-    (transferService as any).transactionRepo = transactionRepoMock;
-    (transferService as any).walletRepo = walletRepoMock;
-    (transferService as any).ledgerRepo = ledgerRepoMock;
-  });
+beforeEach(() => {
+  transactionRepoMock = new TransactionRepository() as jest.Mocked<TransactionRepository>;
+  walletRepoMock = new WalletRepository() as jest.Mocked<WalletRepository>;
+  ledgerRepoMock = new LedgerRepository() as jest.Mocked<LedgerRepository>;
+
+  transferService = new TransferService(
+    transactionRepoMock,
+    walletRepoMock,
+    ledgerRepoMock
+  );
+});
 
 it('should transfer funds successfully', async () => {
   const payload = { fromWalletId: 'wallet1', toWalletId: 'wallet2', amount: 100, idempotencyKey: 'abc123' };

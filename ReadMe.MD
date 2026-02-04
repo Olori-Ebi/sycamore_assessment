@@ -3,17 +3,19 @@
 A Node.js + Express + Sequelize API for managing wallet transfers and transactions. Supports idempotent transfers, ledger entries, balance updates, and unit tests with Jest.
 
 ## Features
-- Create wallet-to-wallet transfers with idempotency
-- Maintain transaction logs and ledgers for auditability
-- Safe arithmetic with decimal.js to prevent floating-point errors
+- Wallet-to-wallet transfers with idempotency protection
+- Transaction logs and double-entry ledgers for auditability
+- Atomic balance updates using database transactions
+- Safe arithmetic using decimal.js (no floating-point errors)
 - PostgreSQL database with Sequelize ORM
-- Migrations and seed data for development/testing
-- Unit tests with Jest
+- Migrations and seed data for development
+- Unit tests with Jest and mocked repositories
 
 ## Tech Stack
 - Node.js + Express + TypeScript
 - Sequelize ORM + PostgreSQL
 - decimal.js for precise money calculations
+- Docker Compose (PostgreSQL only)
 - dotenv for environment configuration
 - Jest for testing
 
