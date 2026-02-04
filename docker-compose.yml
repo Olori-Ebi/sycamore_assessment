@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: sycamore-postgres
+    ports:
+      - "55432:5432"
+    environment:
+      POSTGRES_USER: sycamore_user
+      POSTGRES_PASSWORD: strongpassword
+      POSTGRES_DB: sycamore_db
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
