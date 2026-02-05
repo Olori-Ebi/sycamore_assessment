@@ -3,6 +3,7 @@ import Decimal from 'decimal.js';
 import { transactionRepository } from '../repositories/TransactionLog.repository';
 import { walletRepository } from '../repositories/Wallet.repository';
 import { ledgerRepository } from '../repositories/Ledger.repository';
+import { TransactionStatus, TransactionType } from '../constants';
 
 /**
  * Service responsible for handling fund transfers between wallets.
@@ -37,7 +38,7 @@ export class TransferService {
             // Check for existing transaction
             const existing = await this.transactionRepo.findByIdempotencyKey(idempotencyKey, tx);
             if (existing) {
-                if (existing.status === 'pending') throw new Error('Transaction already in progress');
+                if (existing.status === TransactionStatus.PENDING) throw new Error('Transaction already in progress');
                 return existing;
             }
 
@@ -46,7 +47,7 @@ export class TransferService {
                 fromWalletId,
                 toWalletId,
                 amount: amount.toString(),
-                status: 'pending',
+                status: TransactionStatus.PENDING,
                 idempotencyKey,
             }, tx);
 
@@ -57,7 +58,7 @@ export class TransferService {
             ]);
 
             if (!fromWallet || !toWallet) {
-                await this.transactionRepo.updateStatus(transaction, 'failed', tx);
+                await this.transactionRepo.updateStatus(transaction, TransactionStatus.FAILED, tx);
                 throw new Error('Invalid wallet IDs');
             }
 
@@ -66,7 +67,7 @@ export class TransferService {
             const amountDecimal = new Decimal(amount);
 
             if (fromBalance.lessThan(amountDecimal)) {
-                await this.transactionRepo.updateStatus(transaction, 'failed', tx);
+                await this.transactionRepo.updateStatus(transaction, TransactionStatus.FAILED, tx);
                 throw new Error('Insufficient funds');
             }
 
@@ -76,12 +77,12 @@ export class TransferService {
 
             // Create ledger entries
             await this.ledgerRepo.createBulk([
-                { walletId: fromWallet.id, transactionId: transaction.id, type: 'debit', amount: amountDecimal.toFixed(2), balanceAfter: fromWallet.balance },
-                { walletId: toWallet.id, transactionId: transaction.id, type: 'credit', amount: amountDecimal.toFixed(2), balanceAfter: toWallet.balance },
+                { walletId: fromWallet.id, transactionId: transaction.id, type: TransactionType.DEBIT, amount: amountDecimal.toFixed(2), balanceAfter: fromWallet.balance },
+                { walletId: toWallet.id, transactionId: transaction.id, type: TransactionType.CREDIT, amount: amountDecimal.toFixed(2), balanceAfter: toWallet.balance },
             ], tx);
 
             // Mark transaction success
-            await this.transactionRepo.updateStatus(transaction, 'success', tx);
+            await this.transactionRepo.updateStatus(transaction, TransactionStatus.SUCCESS, tx);
 
             await tx.commit();
             return transaction.dataValues;
