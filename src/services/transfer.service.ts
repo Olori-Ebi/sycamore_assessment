@@ -1,14 +1,14 @@
-import { TransactionRepository } from '../repositories/TransactionLog.repository';
-import { WalletRepository } from '../repositories/Wallet.repository';
-import { LedgerRepository } from '../repositories/Ledger.repository';
 import Wallet from '../models/Wallet';
 import Decimal from 'decimal.js';
+import { transactionRepository } from '../repositories/TransactionLog.repository';
+import { walletRepository } from '../repositories/Wallet.repository';
+import { ledgerRepository } from '../repositories/Ledger.repository';
 
 export class TransferService {
     constructor(
-        private transactionRepo = new TransactionRepository(),
-        private walletRepo = new WalletRepository(),
-        private ledgerRepo = new LedgerRepository(),
+        private transactionRepo = transactionRepository,
+        private walletRepo = walletRepository,
+        private ledgerRepo = ledgerRepository,
     ) { }
     async transferFunds(payload: {
         fromWalletId: string;
@@ -79,4 +79,7 @@ export class TransferService {
     }
 }
 
+/**
+ * Singleton instance of TransferService.
+ */
 export const transferService = new TransferService();

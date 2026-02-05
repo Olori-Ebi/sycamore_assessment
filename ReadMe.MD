@@ -63,6 +63,27 @@ POSTGRES_PORT=55432
     npm run build && npm start
 ```
 
+### 7. Transfer Funds
+
+```bash
+    POST http://localhost:3000/api/transfer
+```
+
+##### Headers
+```bash
+    Content-Type: application/json
+```
+
+##### Payload Sample
+```bash
+    {
+        "fromWalletId": "2403e171-cd75-40cb-84f8-6b55dbdb917c",
+        "toWalletId": "aec93e61-513b-47cc-a484-ff7170765145",
+        "amount": "100",
+        "idempotencyKey": "{{$randomUUID}}"
+    }
+```
+
 ### To Run Tests
 Run
 ```bash

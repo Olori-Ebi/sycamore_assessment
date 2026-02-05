@@ -1,11 +1,11 @@
 import { TransferService } from '../transfer.service';
-import { TransactionRepository } from '../../repositories/TransactionLog.repository';
-import { WalletRepository } from '../../repositories/Wallet.repository';
-import { LedgerRepository } from '../../repositories/Ledger.repository';
+import { transactionRepository } from '../../repositories/TransactionLog.repository';
+import { walletRepository } from '../../repositories/Wallet.repository';
+import { ledgerRepository } from '../../repositories/Ledger.repository';
 import Wallet from '../../models/Wallet';
 import Decimal from 'decimal.js';
 
-// Mock sequelize transaction
+// ---- Mock sequelize transaction ----
 const commit = jest.fn();
 const rollback = jest.fn();
 
@@ -13,45 +13,46 @@ const rollback = jest.fn();
   transaction: jest.fn().mockResolvedValue({
     commit,
     rollback,
+    LOCK: { UPDATE: 'UPDATE' },
   }),
 };
 
-// Mock repositories
-jest.mock('../../repositories/TransactionLog.repository');
-jest.mock('../../repositories/Wallet.repository');
-jest.mock('../../repositories/Ledger.repository');
+// ---- Mock singleton repositories ----
+jest.mock('../../repositories/TransactionLog.repository', () => ({
+  transactionRepository: {
+    findByIdempotencyKey: jest.fn(),
+    create: jest.fn(),
+    updateStatus: jest.fn(),
+  },
+}));
+
+jest.mock('../../repositories/Wallet.repository', () => ({
+  walletRepository: {
+    findById: jest.fn(),
+    updateBalance: jest.fn(),
+  },
+}));
+
+jest.mock('../../repositories/Ledger.repository', () => ({
+  ledgerRepository: {
+    createBulk: jest.fn(),
+  },
+}));
 
 describe('TransferService', () => {
   let transferService: TransferService;
-  let transactionRepoMock: jest.Mocked<TransactionRepository>;
-  let walletRepoMock: jest.Mocked<WalletRepository>;
-  let ledgerRepoMock: jest.Mocked<LedgerRepository>;
+
+  const transactionRepoMock =
+    transactionRepository as jest.Mocked<typeof transactionRepository>;
+  const walletRepoMock =
+    walletRepository as jest.Mocked<typeof walletRepository>;
+  const ledgerRepoMock =
+    ledgerRepository as jest.Mocked<typeof ledgerRepository>;
 
   beforeEach(() => {
     jest.clearAllMocks();
-
-    transactionRepoMock = {
-      findByIdempotencyKey: jest.fn(),
-      create: jest.fn(),
-      updateStatus: jest.fn(),
-    } as unknown as jest.Mocked<TransactionRepository>;
-
-    walletRepoMock = {
-      findById: jest.fn(),
-      updateBalance: jest.fn(),
-    } as unknown as jest.Mocked<WalletRepository>;
-
-    ledgerRepoMock = {
-      createBulk: jest.fn(),
-    } as unknown as jest.Mocked<LedgerRepository>;
-
-    transferService = new TransferService(
-      transactionRepoMock,
-      walletRepoMock,
-      ledgerRepoMock
-    );
+    transferService = new TransferService();
   });
-
 
   it('should transfer funds successfully', async () => {
     const payload = {
@@ -61,16 +62,16 @@ describe('TransferService', () => {
       idempotencyKey: 'abc123',
     };
 
-    const fromWallet = { id: 'wallet1', balance: '1000' };
-    const toWallet = { id: 'wallet2', balance: '500' };
+    const fromWallet = { id: 'wallet1', balance: '1000.00' };
+    const toWallet = { id: 'wallet2', balance: '500.00' };
 
     const transaction = {
       id: 'tx1',
       status: 'pending',
-      dataValues: {},
+      dataValues: { id: 'tx1' },
     };
 
-    transactionRepoMock.findByIdempotencyKey.mockResolvedValue(null);
+    transactionRepoMock.findByIdempotencyKey.mockResolvedValue(null as any);
     transactionRepoMock.create.mockResolvedValue(transaction as any);
     transactionRepoMock.updateStatus.mockResolvedValue(transaction as any);
 
@@ -82,7 +83,7 @@ describe('TransferService', () => {
 
     walletRepoMock.updateBalance.mockImplementation(async (wallet, balance) => {
       wallet.balance = balance;
-      return wallet;
+      return wallet as any;
     });
 
     ledgerRepoMock.createBulk.mockResolvedValue(undefined as any);
@@ -114,8 +115,8 @@ describe('TransferService', () => {
       idempotencyKey: 'abc124',
     };
 
-    const fromWallet = { id: 'wallet1', balance: '500' };
-    const toWallet = { id: 'wallet2', balance: '500' };
+    const fromWallet = { id: 'wallet1', balance: '500.00' };
+    const toWallet = { id: 'wallet2', balance: '500.00' };
 
     const transaction = {
       id: 'tx2',
@@ -123,7 +124,7 @@ describe('TransferService', () => {
       dataValues: {},
     };
 
-    transactionRepoMock.findByIdempotencyKey.mockResolvedValue(null);
+    transactionRepoMock.findByIdempotencyKey.mockResolvedValue(null as any);
     transactionRepoMock.create.mockResolvedValue(transaction as any);
     transactionRepoMock.updateStatus.mockResolvedValue(transaction as any);
 
