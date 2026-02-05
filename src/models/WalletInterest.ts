@@ -49,7 +49,7 @@ WalletInterest.init(
         sequelize,
         tableName: 'wallet_interest',
         modelName: 'WalletInterest',
-        timestamps: true,
+        timestamps: false,
     }
 );
 

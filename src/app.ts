@@ -1,6 +1,8 @@
 import express from 'express';
 import route from './route/index';
 import { errorHandler } from './middleware/errorHandler';
+import './services/job/interest.job';
+
 
 const app = express();
 
