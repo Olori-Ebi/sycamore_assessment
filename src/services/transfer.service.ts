@@ -4,12 +4,26 @@ import { transactionRepository } from '../repositories/TransactionLog.repository
 import { walletRepository } from '../repositories/Wallet.repository';
 import { ledgerRepository } from '../repositories/Ledger.repository';
 
+/**
+ * Service responsible for handling fund transfers between wallets.
+ * Ensures atomicity, idempotency, and consistency through transactions and row-level locking.
+ */
+
 export class TransferService {
     constructor(
         private transactionRepo = transactionRepository,
         private walletRepo = walletRepository,
         private ledgerRepo = ledgerRepository,
     ) { }
+
+    /**
+     * Transfer funds between two wallets.
+     * Ensures idempotency using the provided idempotency key.
+     *
+     * @param payload - Transfer details including from/to wallet IDs, amount, and idempotency key
+     * @returns The transaction log of the transfer
+     * @throws Error if transfer fails due to insufficient funds or other issues
+     */
     async transferFunds(payload: {
         fromWalletId: string;
         toWalletId: string;
